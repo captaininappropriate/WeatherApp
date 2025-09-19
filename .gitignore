@@ -2,3 +2,4 @@
 *.swp
 main.py.old
 apikeys.db
+__pycache__
