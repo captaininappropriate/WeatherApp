@@ -6,6 +6,7 @@ def get_weather(city: str) -> dict | None:
     """
     Query OpenWeatherMap for current weather in the given city.
     Requires a valid API key stored in the database.
+    A free API key can be obtained at https://openweathermap.org/
     """
     api_key = database.load_api_key()
     if not api_key:

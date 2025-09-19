@@ -24,6 +24,7 @@ class MainWindow(QMainWindow):
 
         layout = QVBoxLayout()
 
+        # create widgets
         self.city_input = QLineEdit()
         self.city_input.setPlaceholderText("Enter city name...")
         self.query_weather_button = QPushButton("Query Weather")
@@ -33,7 +34,7 @@ class MainWindow(QMainWindow):
         self.weather_label = QLabel("Weather info will appear here.")
         self.weather_label.setWordWrap(True)
 
-
+        # add widgets to layout
         layout.addWidget(self.city_input)
         layout.addWidget(self.query_weather_button)
         layout.addWidget(self.weather_condition)
@@ -43,7 +44,7 @@ class MainWindow(QMainWindow):
         main_widget.setLayout(layout)
         self.setCentralWidget(main_widget)
 
-        # Menu bar
+        # create a menu bar
         menubar = self.menuBar()
         file_menu = menubar.addMenu("File") # type: ignore
 
@@ -52,12 +53,12 @@ class MainWindow(QMainWindow):
         api_key_action.triggered.connect(self.open_api_key_dialog)
         file_menu.addAction(api_key_action) # type: ignore
 
-        # Close action
+        # close action
         close_action = QAction("Close", self)
         close_action.triggered.connect(self.close)
         file_menu.addAction(close_action) # type: ignore
 
-        # --- Status Bar ---
+        # Status Bar to display status of API key
         self.statusBar().showMessage(self.get_api_key_status()) # type: ignore
 
     def get_api_key_status(self) -> str:
