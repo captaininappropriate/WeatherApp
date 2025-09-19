@@ -1,5 +1,5 @@
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QAction
+from PyQt6.QtGui import QAction, QPixmap, QImage
 from PyQt6.QtWidgets import (
     QApplication, 
     QMainWindow, 
@@ -8,9 +8,12 @@ from PyQt6.QtWidgets import (
     QLineEdit,
     QLabel,
     QPushButton,
+    QMessageBox
 )
 import database
 from apikeydialog import ApiKeyDialog
+import weather
+import requests
 
 
 class MainWindow(QMainWindow):
@@ -21,19 +24,20 @@ class MainWindow(QMainWindow):
 
         layout = QVBoxLayout()
 
-        city_name = QLineEdit()
-        current_temperature = QLabel()
-        low_temperature = QLabel()
-        high_temperature = QLabel()
-        weather_condition = QLabel()
-        query_button = QPushButton("Submit")
+        self.city_input = QLineEdit()
+        self.city_input.setPlaceholderText("Enter city name...")
+        self.query_weather_button = QPushButton("Query Weather")
+        self.query_weather_button.clicked.connect(self.query_weather)
+        self.weather_condition = QLabel() # image will be placed here
+        self.weather_condition.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.weather_label = QLabel("Weather info will appear here.")
+        self.weather_label.setWordWrap(True)
 
-        layout.addWidget(city_name)
-        layout.addWidget(query_button)
-        layout.addWidget(current_temperature)
-        layout.addWidget(low_temperature)
-        layout.addWidget(high_temperature)
-        layout.addWidget(weather_condition)
+
+        layout.addWidget(self.city_input)
+        layout.addWidget(self.query_weather_button)
+        layout.addWidget(self.weather_condition)
+        layout.addWidget(self.weather_label)
 
         main_widget = QWidget()
         main_widget.setLayout(layout)
@@ -53,9 +57,62 @@ class MainWindow(QMainWindow):
         close_action.triggered.connect(self.close)
         file_menu.addAction(close_action) # type: ignore
 
+        # --- Status Bar ---
+        self.statusBar().showMessage(self.get_api_key_status()) # type: ignore
+
+    def get_api_key_status(self) -> str:
+        """Check if API key exists and return appropriate status message."""
+        api_key = database.load_api_key()
+        if api_key:
+            return "API key loaded"
+        return "API key not set"
+
     def open_api_key_dialog(self):
         dialog = ApiKeyDialog()
         dialog.exec()
+
+    def query_weather(self):
+        city = self.city_input.text().strip()
+        if not city:
+            QMessageBox.warning(self, "Input Error", "Please enter a city name.")
+            return
+
+        try:
+            info = weather.get_weather(city)
+            # format details on label
+            if info:
+                msg = (
+                    f"Weather in {info['city']}:\n"
+                    f"Temperature: {info['temperature']}°C\n"
+                    f"Condition: {info['description']}\n"
+                    f"Humidity: {info['humidity']}%\n"
+                    f"Wind Speed: {info['wind_speed']} m/s"
+                )
+                self.weather_label.setText(msg)
+
+                # format image url and pass to function
+                image_data = info['icon']
+                image_url = f"https://openweathermap.org/img/wn/{image_data}@2x.png"
+                weather_condition_image = self.get_qpixmap_from_url(image_url)
+                self.weather_condition.setPixmap(weather_condition_image)
+            else:
+                self.weather_label.setText("Could not retrieve weather data.")
+        except ValueError as e:
+            QMessageBox.critical(self, "Error", str(e))
+
+    def get_qpixmap_from_url(self, url: str) -> QPixmap:
+        # Download image data
+        response = requests.get(url)
+        response.raise_for_status()  # raise an error if download fails
+        data = response.content
+
+        # Convert to QImage
+        image = QImage.fromData(data)
+        if image.isNull():
+            raise ValueError("Failed to load image from URL")
+        
+        # Convert QImage to QPixmap
+        return QPixmap.fromImage(image)
 
 
 if __name__ == "__main__":
