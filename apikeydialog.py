@@ -25,12 +25,12 @@ class ApiKeyDialog(QDialog):
         saved_key = database.load_api_key()
         if saved_key:
             self.input.setText("***************")
-        layout.addWidget(self.input)
 
         self.save_button = QPushButton("Save")
         self.save_button.clicked.connect(self.save_key)
-        layout.addWidget(self.save_button)
 
+        layout.addWidget(self.input)
+        layout.addWidget(self.save_button)
         self.setLayout(layout)
 
     def save_key(self):

@@ -26,10 +26,10 @@ class MainWindow(QMainWindow):
         low_temperature = QLabel()
         high_temperature = QLabel()
         weather_condition = QLabel()
-        query_weather = QPushButton("Submit")
+        query_button = QPushButton("Submit")
 
         layout.addWidget(city_name)
-        layout.addWidget(query_weather)
+        layout.addWidget(query_button)
         layout.addWidget(current_temperature)
         layout.addWidget(low_temperature)
         layout.addWidget(high_temperature)
